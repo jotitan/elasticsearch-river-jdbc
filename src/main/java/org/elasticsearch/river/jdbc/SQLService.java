@@ -175,6 +175,9 @@ public class SQLService implements BulkAcknowledge {
         statement.setFetchSize(fetchSize);
         return statement.executeQuery();
     }
+    public String treat(PreparedStatement statement, int fetchsize, String defaultOperation,BulkOperation bulkOp, List<Object> mappings) throws SQLException,IOException {
+        return treat(statement,fetchsize,defaultOperation,bulkOp,mappings,false);
+    }
 
     /**
      * Index data returns by the request in statement. At the end of treatment, return the modification date of the last indexed object. When river come again, treatment start a this point.
@@ -185,7 +188,7 @@ public class SQLService implements BulkAcknowledge {
      * @return the date of modification of the last indexed document. The results are not sorted, the date is getting in comparing all date ang keep the max
      * @throws SQLException
      */
-    public String treat(PreparedStatement statement, int fetchsize, String defaultOperation,BulkOperation bulkOp, List<Object> mappings) throws SQLException,IOException {
+    public String treat(PreparedStatement statement, int fetchsize, String defaultOperation,BulkOperation bulkOp, List<Object> mappings,boolean forceTimestamp) throws SQLException,IOException {
         long beginDate = System.currentTimeMillis();
         ResultSet results = getResultsWithBounds(statement,fetchsize);
         long endDate = System.currentTimeMillis();
@@ -225,11 +228,11 @@ public class SQLService implements BulkAcknowledge {
                 String columnName = (String)mappings.get(i-1);
                 if(!columnName.startsWith("_")){
                     keys.add(columnName);
-                    values.add(parseType(results,i,metadata.getColumnType(i),columnName,metadata.getColumnCount()));
+                    values.add(parseType(results,i,metadata.getColumnType(i),columnName,metadata.getColumnCount(),forceTimestamp));
                 }
                 /* Save the modification date of document */
                 if(columnName.toLowerCase().equals(JDBCRiver.FIELD_MODIFICATION_DATE)){
-                    Object date = parseType(results,i,93,columnName,metadata.getColumnCount());
+                    Object date = parseType(results,i,93,columnName,metadata.getColumnCount(),forceTimestamp);
                     if(date!=null){
                         String formatDate = DateUtil.formatDateStandard(DateUtil.parseDateISO(date.toString()));
                         if(formatDate!=null){
@@ -360,11 +363,15 @@ public class SQLService implements BulkAcknowledge {
      * @param i
      * @param metadata
      * @param name
+     * @param forceTimestamp : avoid problem parsing date as timestamp
      * @return The parse value
      * @throws SQLException
      * @throws IOException
      */
-    private Object parseType(ResultSet result,Integer i,int type,String name,int columnCount)throws SQLException,IOException{
+    private Object parseType(ResultSet result,Integer i,int type,String name,int columnCount,boolean forceTimestamp)throws SQLException,IOException{
+        if(forceTimestamp && Types.DATE == type){
+            type = Types.TIMESTAMP;
+        }
 
         switch (type) {
             /**
@@ -839,7 +846,7 @@ public class SQLService implements BulkAcknowledge {
                 continue;
             }
             keys.add(name);
-            values.add(parseType(result,i,metadata.getColumnType(i),name,metadata.getColumnCount()));
+            values.add(parseType(result,i,metadata.getColumnType(i),name,metadata.getColumnCount(),false));
         }
         if (id == null) {
             id = Integer.toString(result.getRow());

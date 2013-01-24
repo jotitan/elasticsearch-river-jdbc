@@ -67,6 +67,7 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
     private final String user;
     private final String password;
     private final String sql;
+    private final boolean forceTimestamp;    // Use to avoid problems with oracle date
     private final int fetchsize;
     private final List<Object> params;
     protected final List<Object> mapping;
@@ -103,6 +104,7 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
             user = XContentMapValues.nodeStringValue(jdbcSettings.get("user"), null);
             password = XContentMapValues.nodeStringValue(jdbcSettings.get("password"), null);
             sql = XContentMapValues.nodeStringValue(jdbcSettings.get("sql"), null);
+            forceTimestamp = XContentMapValues.nodeBooleanValue(jdbcSettings.get("forceTimestamp"), false);
             strategy = XContentMapValues.nodeStringValue(jdbcSettings.get("strategy"), null);
             fetchsize = XContentMapValues.nodeIntegerValue(jdbcSettings.get("fetchsize"), 0);
             params = XContentMapValues.extractRawValues("params", jdbcSettings);
@@ -119,6 +121,7 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
             user = null;
             password = null;
             sql = null;
+            forceTimestamp = false;
             strategy = null;
             fetchsize = 0;
             params = null;
@@ -407,7 +410,7 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
                         service.bind(statement, list);
                     }
 
-                    lastModificationDate = service.treat(statement, fetchsize,indexOperation,operation,mapping);
+                    lastModificationDate = service.treat(statement, fetchsize,indexOperation,operation,mapping,forceTimestamp);
 
                     // If no results to index, the lastmodificationdate is null, get the previous date
                     if(lastModificationDate == null){
