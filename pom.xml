@@ -20,7 +20,20 @@
         <developerConnection>scm:git:git@github.com:figarocms/elasticsearch-river-jdbc.git</developerConnection>
         <url>http://github.com/figarocms/elasticsearch-river-jdbc</url>
     </scm>
-
+<!-- Figarocms Repositories -->
+   <distributionManagement>
+       <repository>
+           <id>Adenclassifieds Releases</id>
+           <name>Repository for Adenclassifieds stable releases</name>
+           <url>http://mvnrepository.adencf.local/nexus/content/repositories/adenclassifieds</url>
+       </repository>
+       <snapshotRepository>
+           <id>Adenclassifieds Snapshots</id>
+           <uniqueVersion>true</uniqueVersion>
+           <name>Repository for Adenclassifieds Snapshots releases</name>
+           <url>http://mvnrepository.adencf.local/nexus/content/repositories/adenclassifieds-snapshots</url>
+       </snapshotRepository>
+   </distributionManagement>
     <properties>
         <elasticsearch.version>0.19.4</elasticsearch.version>
         <github.global.server>github</github.global.server>
