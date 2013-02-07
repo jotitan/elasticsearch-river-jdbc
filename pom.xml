@@ -16,9 +16,9 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:git:git@github.com:jotitan/elasticsearch-river-jdbc.git</connection>
-        <developerConnection>scm:git:git@github.com:jotitan/elasticsearch-river-jdbc.git</developerConnection>
-        <url>http://github.com/jotitan/elasticsearch-river-jdbc</url>
+        <connection>scm:git:git@github.com:figarocms/elasticsearch-river-jdbc.git</connection>
+        <developerConnection>scm:git:git@github.com:figarocms/elasticsearch-river-jdbc.git</developerConnection>
+        <url>http://github.com/figarocms/elasticsearch-river-jdbc</url>
     </scm>
 
     <properties>
