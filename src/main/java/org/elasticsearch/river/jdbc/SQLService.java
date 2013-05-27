@@ -184,7 +184,9 @@ public class SQLService implements BulkAcknowledge {
      * @param statement Statement which contain request
      * @param fetchsize  Number of elements to index
      * @param defaultOperation Default operation if nothing is define in select results
-     * @param aliasDateField
+     * @param bulkOp
+     * @param mappings
+     * @param forceTimestamp
      * @return the date of modification of the last indexed document. The results are not sorted, the date is getting in comparing all date ang keep the max
      * @throws SQLException
      */
@@ -357,17 +359,6 @@ public class SQLService implements BulkAcknowledge {
         return false;
     }
 
-    /**
-     * Parse of value of resultset with the good type
-     * @param result
-     * @param i
-     * @param metadata
-     * @param name
-     * @param forceTimestamp : avoid problem parsing date as timestamp
-     * @return The parse value
-     * @throws SQLException
-     * @throws IOException
-     */
     private Object parseType(ResultSet result,Integer i,int type,String name,int columnCount,boolean forceTimestamp)throws SQLException,IOException{
         if(forceTimestamp && Types.DATE == type){
             type = Types.TIMESTAMP;
@@ -933,13 +924,13 @@ public class SQLService implements BulkAcknowledge {
             PreparedStatement pstmt = connection.prepareStatement(sql);
             for (BulkItemResponse resp : response) {
                 pstmt.setTimestamp(1, new Timestamp(new java.util.Date().getTime()));
-                pstmt.setString(2, resp.opType());
-                pstmt.setBoolean(3, resp.failed());
-                pstmt.setString(4, resp.failureMessage());
-                pstmt.setString(5, resp.opType());
-                pstmt.setString(6, resp.index());
-                pstmt.setString(7, resp.type());
-                pstmt.setString(8, resp.id());
+                pstmt.setString(2, resp.getOpType());
+                pstmt.setBoolean(3, resp.isFailed());
+                pstmt.setString(4, resp.getFailureMessage());
+                pstmt.setString(5, resp.getOpType());
+                pstmt.setString(6, resp.getIndex());
+                pstmt.setString(7, resp.getType());
+                pstmt.setString(8, resp.getId());
                 pstmt.executeUpdate();
             }
             pstmt.close();

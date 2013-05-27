@@ -199,7 +199,7 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
      * Can use settings and mapping to create it correctly
      */
     private void createIndexIfNotExists()throws Exception{
-        if(client.admin().indices().prepareExists(indexName).execute().actionGet().exists()){
+        if(client.admin().indices().prepareExists(indexName).execute().actionGet().isExists()){
             logger.info("Index " + indexName + " exists.");
             if(settingsES!=null && !"".equals(settingsES)){
                 client.admin().indices().prepareUpdateSettings(indexName).setSettings(settingsES).execute().actionGet();
@@ -246,11 +246,11 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
                     // read state from _custom
                     client.admin().indices().prepareRefresh(riverIndexName).execute().actionGet();
                     GetResponse get = client.prepareGet(riverIndexName, riverName().name(), ID_INFO_RIVER_INDEX).execute().actionGet();
-                    if (creationDate != null || !get.exists()) {
+                    if (creationDate != null || !get.isExists()) {
                         version = 1L;
                         digest = null;
                     } else {
-                        Map<String, Object> jdbcState = (Map<String, Object>) get.sourceAsMap().get("jdbc");
+                        Map<String, Object> jdbcState = (Map<String, Object>) get.getSourceAsMap().get("jdbc");
                         if (jdbcState != null) {
                             version = (Number) jdbcState.get("version");
                             version = version.longValue() + 1; // increase to next version
@@ -306,12 +306,12 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
             logger.info("housekeeping for version " + version);
             client.admin().indices().prepareRefresh(indexName).execute().actionGet();
             SearchResponse response = client.prepareSearch().setIndices(indexName).setTypes(typeName).setSearchType(SearchType.SCAN).setScroll(TimeValue.timeValueMinutes(10)).setSize(bulkSize).setVersion(true).setQuery(matchAllQuery()).execute().actionGet();
-            if (response.timedOut()) {
+            if (response.isTimedOut()) {
                 logger.error("housekeeper scan query timeout");
                 return;
             }
-            if (response.failedShards() > 0) {
-                logger.error("housekeeper failed shards in scan response: {0}", response.failedShards());
+            if (response.getFailedShards() > 0) {
+                logger.error("housekeeper failed shards in scan response: {0}", response.getFailedShards());
                 return;
             }
             String scrollId = response.getScrollId();
@@ -325,15 +325,15 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
             long t0 = System.currentTimeMillis();
             do {
                 response = client.prepareSearchScroll(response.getScrollId()).setScroll(TimeValue.timeValueMinutes(10)).execute().actionGet();
-                if (response.timedOut()) {
+                if (response.isTimedOut()) {
                     logger.error("housekeeper scroll query timeout");
                     done = true;
-                } else if (response.failedShards() > 0) {
-                    logger.error("housekeeper failed shards in scroll response: {}", response.failedShards());
+                } else if (response.getFailedShards() > 0) {
+                    logger.error("housekeeper failed shards in scroll response: {}", response.getFailedShards());
                     done = true;
                 } else {
                     // terminate scrolling?
-                    if (response.hits() == null) {
+                    if (response.getHits() == null) {
                         done = true;
                     } else {
                         for (SearchHit hit : response.getHits().getHits()) {
@@ -449,10 +449,10 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
         private String getPreviousDateModification()throws Exception{
             client.admin().indices().prepareRefresh(riverIndexName).execute().actionGet();
             GetResponse get = client.prepareGet(riverIndexName, riverName().name(), ID_INFO_RIVER_INDEX).execute().actionGet();
-            if (!get.exists()) {
+            if (!get.isExists()) {
                 return null;
             } else {
-                Map<String, Object> jdbcState = (Map<String, Object>) get.sourceAsMap().get("jdbc");
+                Map<String, Object> jdbcState = (Map<String, Object>) get.getSourceAsMap().get("jdbc");
                 if (jdbcState != null) {
                     return (String)jdbcState.get("lastDateModification");
                 } else {

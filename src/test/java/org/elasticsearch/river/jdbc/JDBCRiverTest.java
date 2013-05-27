@@ -122,7 +122,7 @@ public class JDBCRiverTest {
         JDBCRiver river = new JDBCRiver(new RiverName("type_test","type_test"),settings,ESUtilTest.TYPE_INDEX_RIVER,op.getClient());
         river.start();
 
-        op.getClient().admin().cluster().state(Requests.clusterStateRequest().filteredIndices(ESUtilTest.NAME_INDEX_RIVER)).actionGet().state().metaData();
+        op.getClient().admin().cluster().state(Requests.clusterStateRequest().filteredIndices(ESUtilTest.NAME_INDEX_RIVER)).actionGet().getState().metaData();
 
     }
 
@@ -307,7 +307,7 @@ public class JDBCRiverTest {
         river.riverStrategy.run();
 
         GetResponse response = op.getClient().prepareGet(ESUtilTest.NAME_INDEX_RIVER,ESUtilTest.TYPE_INDEX_RIVER,JDBCRiver.ID_INFO_RIVER_INDEX).execute().actionGet();
-        Assert.assertEquals(((Map<String,Object>)response.sourceAsMap().get("jdbc")).get("statut"),"KO");
+        Assert.assertEquals(((Map<String,Object>)response.getSourceAsMap().get("jdbc")).get("statut"),"KO");
     }
 
     @Test

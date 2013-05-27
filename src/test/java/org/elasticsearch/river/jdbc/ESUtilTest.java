@@ -28,7 +28,7 @@ public class ESUtilTest {
 
     public static void createIndexIfNotExist(Client client,String index){
         // Creation of working index
-        if(client.admin().indices().prepareExists(index).execute().actionGet().exists() == false){
+        if(client.admin().indices().prepareExists(index).execute().actionGet().isExists() == false){
             client.admin().indices().prepareCreate(index).execute().actionGet();
         }
     }
@@ -103,7 +103,7 @@ public class ESUtilTest {
             public BulkOperation setIndex(String index) {
                 super.setIndex(index);
                 // We create the index in memory if it does'nt exist
-                if(!client.admin().indices().prepareExists(index).execute().actionGet().exists()){
+                if(!client.admin().indices().prepareExists(index).execute().actionGet().isExists()){
                     client.admin().indices().prepareCreate(index).execute().actionGet();
                 }
                 return this;

@@ -232,7 +232,7 @@ public class BulkOperation implements Action {
                 @Override
                 public void onResponse(BulkResponse bulkResponse) {
                     if (ack != null) try {
-                        ack.acknowledge(riverName, bulkResponse.items());
+                        ack.acknowledge(riverName, bulkResponse.getItems());
                     } catch (IOException ex) {
                         logger.error("bulk acknowledge failed", ex);
                     }
@@ -240,7 +240,7 @@ public class BulkOperation implements Action {
                         logger.error("bulk request has failures: {}", bulkResponse.buildFailureMessage());
                     } else {
                         final int totalActions = counter.addAndGet(numberOfActions);
-                        logger.info("bulk request success ({} millis, {} docs, total of {} docs)", new Object[]{bulkResponse.tookInMillis(), numberOfActions, totalActions});
+                        logger.info("bulk request success ({} millis, {} docs, total of {} docs)", new Object[]{bulkResponse.getTookInMillis(), numberOfActions, totalActions});
                     }
                     onGoingBulks.decrementAndGet();
                     synchronized (onGoingBulks) {
