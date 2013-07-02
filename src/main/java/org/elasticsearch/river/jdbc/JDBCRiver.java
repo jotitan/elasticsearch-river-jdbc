@@ -197,17 +197,18 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
     /**
      * Create the index if it don't exist.
      * Can use settings and mapping to create it correctly
+	 * WARNING : do not update settings if already exists
      */
     private void createIndexIfNotExists()throws Exception{
         if(client.admin().indices().prepareExists(indexName).execute().actionGet().isExists()){
             logger.info("Index " + indexName + " exists.");
-            if(settingsES!=null && !"".equals(settingsES)){
-                client.admin().indices().prepareUpdateSettings(indexName).setSettings(settingsES).execute().actionGet();
+		   if(settingsES!=null && !"".equals(settingsES) && !verifyIfSettingsExist()){
                 logger.info("Use specifics Settings to create index");
+				client.admin().indices().prepareUpdateSettings(indexName).setSettings(settingsES).execute().actionGet();
             }
             if(mappingES!=null && !"".equals(mappingES)){
+				logger.info("Create specifics mapping in index");
                 client.admin().indices().preparePutMapping(indexName).setType(typeName).setSource(mappingES).execute().actionGet();
-                logger.info("Create specifics mapping in index");
             }
             return;
         }
@@ -224,6 +225,25 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
         }
         creationDate = new Date();
     }
+
+	/**
+	 * Verify if settings already exist for indexName
+	 * @return
+	 */
+	private boolean verifyIfSettingsExist(){
+		try{
+			Map<String,String> settings = client.admin().cluster().prepareState().execute().get().getState().getMetaData().getIndices().get(indexName).getSettings().getAsMap();
+			for(String s : settings.keySet()){
+				if(s.startsWith("index.analysis")){	// Analysis settings exist
+					return true;
+				}
+			}
+			return false;
+		}catch(Exception e){
+			logger.error("Impossible to check settings : " + e.getMessage());
+			return true;
+		}
+	}
 
     @Override
     public void close() {
