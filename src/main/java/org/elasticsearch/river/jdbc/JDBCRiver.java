@@ -18,36 +18,32 @@
  */
 package org.elasticsearch.river.jdbc;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import org.elasticsearch.ExceptionsHelper;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
-import static org.elasticsearch.client.Requests.indexRequest;
 import org.elasticsearch.cluster.block.ClusterBlockException;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.util.concurrent.EsExecutors;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import org.elasticsearch.common.xcontent.support.XContentMapValues;
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import org.elasticsearch.indices.IndexAlreadyExistsException;
-import org.elasticsearch.river.AbstractRiverComponent;
-import org.elasticsearch.river.River;
-import org.elasticsearch.river.RiverIndexName;
-import org.elasticsearch.river.RiverName;
-import org.elasticsearch.river.RiverSettings;
+import org.elasticsearch.river.*;
 import org.elasticsearch.search.SearchHit;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.util.*;
+
+import static org.elasticsearch.client.Requests.indexRequest;
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 public class JDBCRiver extends AbstractRiverComponent implements River {
 
@@ -423,7 +419,10 @@ public class JDBCRiver extends AbstractRiverComponent implements River {
 
                     /* Add the order instruction : id and modification date */
 					//requestSQL += " order by \"" + FIELD_MODIFICATION_DATE + "\" asc, \"_id\" asc";
-					requestSQL += " order by \"_id\" asc";
+					// Si c'est la premiere indexation (full index), pas besoin de l'order, toutes les dates seront traitees
+					if(lastModificationDate !=null){
+						requestSQL += " order by \"_id\" asc";
+					}
 
 					logger.info("Requete SQL : " + requestSQL);
 
