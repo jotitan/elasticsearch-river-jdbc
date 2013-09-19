@@ -35,7 +35,7 @@
        </snapshotRepository>
    </distributionManagement>
     <properties>
-        <elasticsearch.version>0.90.3</elasticsearch.version>
+        <elasticsearch.version>0.90.5</elasticsearch.version>
         <github.global.server>github</github.global.server>
     </properties>
 
